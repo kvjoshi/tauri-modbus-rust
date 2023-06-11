@@ -8,8 +8,17 @@ use modbus::tcp;
 use serde_json::Value::Bool;
 
 
-#[tauri::command]
+const SLAVE_IP: &str = "192.168.1.13";
 
+#[tauri::command]
+fn read_modbus(reg: u16) -> Vec<u16> {
+    let mut client = tcp::Transport::new_with_cfg(SLAVE_IP, tcp::Config::default()).unwrap();
+    // let mut client =  Client::new(client);
+    let result = client.read_holding_registers(reg, 1).unwrap();
+    println!("result: {:?}", result);
+    result
+
+}
 
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
@@ -20,7 +29,7 @@ fn greet(name: &str) -> String {
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![greet , read_modbus])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

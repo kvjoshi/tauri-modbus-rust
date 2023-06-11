@@ -5,35 +5,36 @@ import "./App.css";
 
 function App() {
   const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+  const [reg_addr, setReg_Addr] = useState("");
 
-  async function greet() {
+  async function read_holding() {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    setGreetMsg(await invoke("greet", { name }));
+    setGreetMsg(await invoke("read_modbus", { reg: parseInt(reg_addr) }));
   }
 
   return (
     <div className="container">
-      <h1>Welcome to Tauri!</h1>
-
+      <h1>Welcome to Tauri Modbus Controller!</h1>
+<div>
 
       <form
         className="row"
         onSubmit={(e) => {
           e.preventDefault();
-          greet();
+          read_holding();
         }}
       >
         <input
-          id="greet-input"
+          id="reg-address"
           type={"text"}
-          onChange={(e) => setName(e.target.value)}
-
+          onChange={(e) => setReg_Addr(e.target.value)}
+        placeholder={"Register Address"}
         />
-        <button type="submit">Greet</button>
+        <button type="submit">Read</button>
       </form>
 
       <p>{greetMsg}</p>
+</div>
     </div>
   );
 }
