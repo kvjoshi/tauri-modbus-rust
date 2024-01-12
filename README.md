@@ -1,3 +1,12 @@
+# Run Using
+currently reading only at 192.168.1.13
+
+    yarn tauri dev
+
+ or
+    
+    yarn tauri build
+
 # Tauri + React + Typescript
 
 This template should help get you started developing with Tauri, React and Typescript in Vite.
