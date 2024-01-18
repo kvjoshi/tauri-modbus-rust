@@ -3,31 +3,59 @@
 
 extern crate modbus;
 //importing and using modbus
-use modbus::{Client,Coil};
+use modbus::Client;
 use modbus::tcp;
-use serde_json::Value::Bool;
+//use serde_json::Value::Bool;
 
 
-const SLAVE_IP: &str = "192.168.1.13";
+const SLAVE_IP: &str = "127.0.0.1";
+const CONFIGURATION: tcp::Config = tcp::Config {
+    tcp_port: 5020,
+    tcp_connect_timeout: Some(std::time::Duration::from_secs(5)), // Adjust the timeout value as needed
+    tcp_read_timeout: Some(std::time::Duration::from_secs(5)), // Adjust the timeout value as needed
+    tcp_write_timeout: Some(std::time::Duration::from_secs(5)), // Adjust the timeout value as needed
+    modbus_uid: 1,
+};
 
 #[tauri::command]
 fn read_modbus(reg: u16) -> Vec<u16> {
-    let mut client = tcp::Transport::new_with_cfg(SLAVE_IP, tcp::Config::default()).unwrap();
-    // let mut client =  Client::new(client);
-    let result = client.read_holding_registers(reg, 1).unwrap();
-    println!("result: {:?}", result);
-    result
-
+    match tcp::Transport::new_with_cfg(SLAVE_IP, CONFIGURATION) {
+        Ok(mut client) => {
+            match client.read_holding_registers(reg, 1) {
+                Ok(result) => {
+                    println!("result: {:?}", result);
+                    result
+                }
+                Err(err) => {
+                    eprintln!("Error reading Modbus: {:?}", err);
+                    Vec::new()
+                }
+            }
+        }
+        Err(err) => {
+            eprintln!("Error establishing Modbus connection: {:?}", err);
+            Vec::new()
+        }
+    }
 }
 
 #[tauri::command]
 fn write_modbus(reg: u16, value: u16) {
-    let mut client = tcp::Transport::new_with_cfg(SLAVE_IP, tcp::Config::default()).unwrap();
-    // let mut client =  Client::new(client);
-    let result = client.write_single_register(reg, value).unwrap();
-    println!("result: {:?}", result);
-    result
-
+    match tcp::Transport::new_with_cfg(SLAVE_IP, CONFIGURATION) {
+        Ok(mut client) => {
+            match client.write_single_register(reg, value) {
+                Ok(result) => {
+                    println!("result: {:?}", result);
+                }
+                Err(err) => {
+                    eprintln!("Error writing Modbus: {:?}", err);
+                }
+            }
+        }
+        Err(err) => {
+            eprintln!("Error establishing Modbus connection: {:?}", err);
+        }
+    }
 }
 
 
