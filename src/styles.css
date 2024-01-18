@@ -42,6 +42,12 @@
   display: flex;
   justify-content: center;
 }
+.column {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Optional: Center items horizontally */
+}
+
 .box{
   border: #24c8db 1px solid;
     border-radius: 5px;

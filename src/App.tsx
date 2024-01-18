@@ -1,76 +1,103 @@
-import  React , { useState } from "react";
-import reactLogo from "./assets/react.svg";
+import React, { useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 
 import "./App.css";
 
 
 function App() {
-  const [regMsg, setRegMsg] = useState("");
-  const [writeMsg, setWriteMsg] = useState("");
-  const [wValue, setWValue] = useState("");
-  const [reg_addr, setReg_Addr] = useState("");
-  const [wreg_addr, setWReg_Addr] = useState("");
+  const [host, setHost] = useState<string>("127.0.0.1");
+  const [port, setPort] = useState<number>(5020);
+  const [msg, setMsg] = useState("");
+  const [device, setDevice] = useState<number>(1);
+  const [address, setAddress] = useState<number>(128);
+  const [value, setValue] = useState<number>(1);
+  const [modbusFunction, setModbusFunction] = useState("06");
 
-  async function read_holding() {
-    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-      setRegMsg(await invoke("read_modbus", { reg: parseInt(reg_addr) }));
+  async function handle_modbus(host: string, port: number, command: string, uid: number = 1, reg: number, value: number = 0) {
+    setMsg(await invoke("handle_modbus", { host, port, command, uid, reg, value }));
   }
 
-    async function write_reg() {
-        // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-        setWriteMsg(await invoke("write_modbus", { reg: parseInt(wreg_addr), value: parseInt(wValue) }));
-    }
   return (
     <div className="container">
       <h1>Welcome to Tauri Modbus Controller!</h1>
-<div>
-
+      <h1>Configuration</h1>
       <form
         className="row"
         onSubmit={(e) => {
           e.preventDefault();
-          read_holding();
         }}
       >
         <input
-          id="reg-address"
+          id="reg-address21"
           type={"text"}
-          onChange={(e) => setReg_Addr(e.target.value)}
-        placeholder={"Register Address"}
+          onChange={(e) => setHost(e.target.value)}
+          placeholder={"Host"}
+          defaultValue={host}
         />
-        <button type="submit">Read</button>
+        <input
+          id="reg-address22"
+          type={"number"}
+          onChange={(e) => setPort(parseInt(e.target.value))}
+          placeholder={"Port"}
+          defaultValue={port}
+        />
       </form>
+      <div>
+        <form
+          className="column"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handle_modbus(host, port, modbusFunction, device, address, value);
+          }}
+        >
+          <div>
+            <label htmlFor="reg-address2">Command:</label>
+            <select value={modbusFunction} onChange={(e) => setModbusFunction(e.target.value)}>
+              <option value="01">01</option> {/* Read coils */}
+              <option value="02">02</option> {/* Read Discrete Inputs */}
+              <option value="03">03</option> {/* Read Multiple holding registers */}
+              <option value="04">04</option> {/* Read Input Registers */}
+              <option value="05">05</option> {/* Write single coil */}
+              <option value="06">06</option> {/* Write single holding register */}
+              <option value="15">15</option> {/* Write multiple coils */}
+              <option value="16">16</option> {/* Write multiple holding registers */}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="reg-address2">Device:</label>
+            <input
+              id="reg-address1"
+              type={"number"}
+              onChange={(e) => setDevice(parseInt(e.target.value))}
+              placeholder={"Device"}
+              defaultValue={device}
+            />
+          </div>
+          <div>
+            <label htmlFor="reg-address2">Register Address:</label>
+            <input
+              id="reg-address2"
+              type={"text"}
+              onChange={(e) => setAddress(parseInt(e.target.value))}
+              placeholder={"Register Address"}
+              defaultValue={address}
+            />
+          </div>
+          <div>
+            <label htmlFor="reg-address2">Value:</label>
+            <input
+              id="reg-address3"
+              type={"text"}
+              onChange={(e) => setValue(parseInt(e.target.value))}
+              placeholder={"Value to Write to Register"}
+              defaultValue={value}
+            />
+          </div>
+          <button type="submit">Send</button>
+        </form>
 
-      <p>{regMsg}</p>
-</div>
-        <div>
-
-            <form
-                className="row"
-                onSubmit={(e) => {
-                    e.preventDefault();
-                    write_reg();
-                }}
-            >
-                <input
-                    id="reg-address"
-                    type={"text"}
-                    onChange={(e) => setWReg_Addr(e.target.value)}
-                    placeholder={"Register Address"}
-                />
-
-                <input
-                    id="reg-address"
-                    type={"text"}
-                    onChange={(e) => setWValue(e.target.value)}
-                    placeholder={"Value to Write to Register"}
-                />
-                <button type="submit">Write</button>
-            </form>
-
-            <p>{writeMsg}</p>
-        </div>
+        <p>{msg}</p>
+      </div>
     </div>
   );
 }
