@@ -52,15 +52,9 @@ function App() {
         >
           <div>
             <label htmlFor="reg-address2">Command:</label>
-            <select value={modbusFunction} onChange={(e) => setModbusFunction(e.target.value)}>
-              <option value="01">01</option> {/* Read coils */}
-              <option value="02">02</option> {/* Read Discrete Inputs */}
-              <option value="03">03</option> {/* Read Multiple holding registers */}
-              <option value="04">04</option> {/* Read Input Registers */}
-              <option value="05">05</option> {/* Write single coil */}
-              <option value="06">06</option> {/* Write single holding register */}
-              <option value="15">15</option> {/* Write multiple coils */}
-              <option value="16">16</option> {/* Write multiple holding registers */}
+            <select value={modbusFunction} onChange={(e) => setModbusFunction(e.target.value)}>              
+              <option value="03">03</option> {/* Read Multiple holding registers */}              
+              <option value="06">06</option> {/* Write single holding register */}              
             </select>
           </div>
           <div>

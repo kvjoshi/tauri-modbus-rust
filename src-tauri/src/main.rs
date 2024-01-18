@@ -2,8 +2,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 extern crate modbus;
-use modbus::Coil;
-//importing and using modbus
 use modbus::tcp;
 use modbus::Client;
 //use serde_json::Value::Bool;
@@ -27,27 +25,6 @@ fn handle_modbus(
 
     match tcp::Transport::new_with_cfg(host, configuration) {
         Ok(mut client) => match command {
-            // "01" => match client.read_coils(reg, 1) {
-            //     Ok(result) => {
-            //         println!("result: {:?}", result);
-            //         Some(Vec::new())
-            //     }
-            //     Err(err) => {
-            //         eprintln!("Error writing Modbus: {:?}", err);
-            //         None
-            //     }
-            // },
-            // "02" => match client.read_discrete_inputs(reg, 1) {
-            //     Ok(result) => {
-            //         println!("result: {:?}", result);
-            //         Some(Vec::new())
-            //         //Some(result)
-            //     }
-            //     Err(err) => {
-            //         eprintln!("Error writing Modbus: {:?}", err);
-            //         None
-            //     }
-            // },
             "03" => match client.read_holding_registers(reg, 1) {
                 Ok(result) => {
                     println!("result: {:?}", result);
@@ -57,27 +34,7 @@ fn handle_modbus(
                     eprintln!("Error reading Modbus: {:?}", err);
                     None
                 }
-            },
-            // "04" => match client.read_input_registers(reg, 1) {
-            //     Ok(result) => {
-            //         println!("result: {:?}", result);
-            //         Some(result)
-            //     }
-            //     Err(err) => {
-            //         eprintln!("Error writing Modbus: {:?}", err);
-            //         None
-            //     }
-            // },
-            // "05" => match client.write_single_coil(reg, Coil::On) {
-            //     Ok(result) => {
-            //         println!("result: {:?}", result);
-            //         None
-            //     }
-            //     Err(err) => {
-            //         eprintln!("Error writing Modbus: {:?}", err);
-            //         None
-            //     }
-            // },
+            },            
             "06" => match client.write_single_register(reg, value) {
                 Ok(result) => {
                     println!("result: {:?}", result);
@@ -88,22 +45,6 @@ fn handle_modbus(
                     None
                 }
             },
-            // "15" => match client.write_multiple_coils(reg, value) {
-            //     Ok(result) => {
-            //         println!("result: {:?}", result);
-            //     }
-            //     Err(err) => {
-            //         eprintln!("Error writing Modbus: {:?}", err);
-            //     }
-            // },
-            // "16" => match client.write_multiple_registers(reg, value) {
-            //     Ok(result) => {
-            //         println!("result: {:?}", result);
-            //     }
-            //     Err(err) => {
-            //         eprintln!("Error writing Modbus: {:?}", err);
-            //     }
-            // },
             _ => {
                 eprintln!("Invalid choice");
                 None
