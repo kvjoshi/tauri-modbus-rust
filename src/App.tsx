@@ -5,14 +5,14 @@ import "./App.css";
 
 interface IOutput {
   sent: number[];
-  pub: number[];
+  resp: number[];
   value: number;
 }
 
 function App() {
   const [host, setHost] = useState<string>("127.0.0.1");
   const [port, setPort] = useState<number>(5020);
-  const [msg, setMsg] = useState("");
+  const [msg, setMsg] = useState<IOutput>();
   const [device, setDevice] = useState<number>(1);
   const [address, setAddress] = useState<number>(128);
   const [value, setValue] = useState<number>(1);
@@ -20,9 +20,8 @@ function App() {
 
 
   async function handle_modbus(host: string, port: number, command: string, uid: number = 1, reg: number, value: number = 0) {
-    const response: IOutput = await invoke("handle_modbus", { host, port, command, uid, reg, value })
-    console.log({response})
-    setMsg(`${response.value ?? ''}`);
+    const response: IOutput = await invoke("handle_modbus", { host, port, command, uid, reg, value })    
+    setMsg(response);
   }
 
   return (
@@ -97,8 +96,10 @@ function App() {
           </div>
           <button type="submit">Send</button>
         </form>
-
-        <p>{msg}</p>
+        
+        <p>Sent: {msg?.sent}</p>
+        <p>Resp: {msg?.resp}</p>
+        <p>Value: {msg?.value}</p>
       </div>
     </div>
   );
