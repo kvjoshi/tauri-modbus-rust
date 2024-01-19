@@ -3,6 +3,11 @@ import { invoke } from "@tauri-apps/api/tauri";
 
 import "./App.css";
 
+interface IOutput {
+  sent: number[];
+  pub: number[];
+  value: number;
+}
 
 function App() {
   const [host, setHost] = useState<string>("127.0.0.1");
@@ -13,8 +18,11 @@ function App() {
   const [value, setValue] = useState<number>(1);
   const [modbusFunction, setModbusFunction] = useState("06");
 
+
   async function handle_modbus(host: string, port: number, command: string, uid: number = 1, reg: number, value: number = 0) {
-    setMsg(await invoke("handle_modbus", { host, port, command, uid, reg, value }));
+    const response: IOutput = await invoke("handle_modbus", { host, port, command, uid, reg, value })
+    console.log({response})
+    setMsg(`${response.value ?? ''}`);
   }
 
   return (

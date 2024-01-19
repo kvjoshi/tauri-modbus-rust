@@ -4,7 +4,18 @@
 extern crate modbus;
 use modbus::tcp;
 use modbus::Client;
+
 //use serde_json::Value::Bool;
+pub mod types {
+    use serde::{Serialize, Deserialize};
+
+    #[derive(Serialize, Deserialize)]
+    pub struct Output {
+        pub sent: Vec<u8>,
+        pub resp: Vec<u8>,
+        pub value: Vec<u16>,
+    }
+}
 
 #[tauri::command]
 fn handle_modbus(
@@ -14,7 +25,7 @@ fn handle_modbus(
     uid: u8,
     reg: u16,
     value: u16,
-) -> Option<Vec<u16>> {
+) -> Option<types::Output> {
     let configuration: tcp::Config = tcp::Config {
         tcp_port: port,
         tcp_connect_timeout: Some(std::time::Duration::from_secs(5)), // Adjust the timeout value as needed
@@ -27,8 +38,13 @@ fn handle_modbus(
         Ok(mut client) => match command {
             "03" => match client.read_holding_registers(reg, 1) {
                 Ok(result) => {
-                    println!("result: {:?}", result);
-                    Some(result)
+                    println!("Sent: {:?}", result.send_frame);
+                    println!("Receive: {:?}", result.resp_frame);
+                    Some(types::Output{
+                        resp: result.resp_frame,
+                        sent: result.send_frame,
+                        value: result.value
+                    })
                 }
                 Err(err) => {
                     eprintln!("Error reading Modbus: {:?}", err);
@@ -37,8 +53,13 @@ fn handle_modbus(
             },            
             "06" => match client.write_single_register(reg, value) {
                 Ok(result) => {
-                    println!("result: {:?}", result);
-                    Some(vec![value])
+                    println!("Sent: {:?}", result.send_frame);
+                    println!("Receive: {:?}", result.resp_frame);
+                    Some(types::Output{
+                        resp: result.resp_frame,
+                        sent: result.send_frame,
+                        value: result.value
+                    })
                 }
                 Err(err) => {
                     eprintln!("Error writing Modbus: {:?}", err);
