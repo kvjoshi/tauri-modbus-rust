@@ -2,34 +2,81 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 extern crate modbus;
-//importing and using modbus
-use modbus::{Client,Coil};
 use modbus::tcp;
-use serde_json::Value::Bool;
+use modbus::Client;
 
+//use serde_json::Value::Bool;
+pub mod types {
+    use serde::{Serialize, Deserialize};
 
-const SLAVE_IP: &str = "192.168.1.13";
-
-#[tauri::command]
-fn read_modbus(reg: u16) -> Vec<u16> {
-    let mut client = tcp::Transport::new_with_cfg(SLAVE_IP, tcp::Config::default()).unwrap();
-    // let mut client =  Client::new(client);
-    let result = client.read_holding_registers(reg, 1).unwrap();
-    println!("result: {:?}", result);
-    result
-
+    #[derive(Serialize, Deserialize)]
+    pub struct Output {
+        pub sent: Vec<u8>,
+        pub resp: Vec<u8>,
+        pub value: Vec<u16>,
+    }
 }
 
 #[tauri::command]
-fn write_modbus(reg: u16, value: u16) {
-    let mut client = tcp::Transport::new_with_cfg(SLAVE_IP, tcp::Config::default()).unwrap();
-    // let mut client =  Client::new(client);
-    let result = client.write_single_register(reg, value).unwrap();
-    println!("result: {:?}", result);
-    result
+fn handle_modbus(
+    host: &str,
+    port: u16,
+    command: &str,
+    uid: u8,
+    reg: u16,
+    value: u16,
+) -> Option<types::Output> {
+    let configuration: tcp::Config = tcp::Config {
+        tcp_port: port,
+        tcp_connect_timeout: Some(std::time::Duration::from_secs(5)), // Adjust the timeout value as needed
+        tcp_read_timeout: Some(std::time::Duration::from_secs(5)), // Adjust the timeout value as needed
+        tcp_write_timeout: Some(std::time::Duration::from_secs(5)), // Adjust the timeout value as needed
+        modbus_uid: uid,
+    };
 
+    match tcp::Transport::new_with_cfg(host, configuration) {
+        Ok(mut client) => match command {
+            "03" => match client.read_holding_registers(reg, 1) {
+                Ok(result) => {
+                    println!("Sent: {:?}", result.send_frame);
+                    println!("Receive: {:?}", result.resp_frame);
+                    Some(types::Output{
+                        resp: result.resp_frame,
+                        sent: result.send_frame,
+                        value: result.value
+                    })
+                }
+                Err(err) => {
+                    eprintln!("Error reading Modbus: {:?}", err);
+                    None
+                }
+            },            
+            "06" => match client.write_single_register(reg, value) {
+                Ok(result) => {
+                    println!("Sent: {:?}", result.send_frame);
+                    println!("Receive: {:?}", result.resp_frame);
+                    Some(types::Output{
+                        resp: result.resp_frame,
+                        sent: result.send_frame,
+                        value: result.value
+                    })
+                }
+                Err(err) => {
+                    eprintln!("Error writing Modbus: {:?}", err);
+                    None
+                }
+            },
+            _ => {
+                eprintln!("Invalid choice");
+                None
+            }
+        },
+        Err(err) => {
+            eprintln!("Error establishing Modbus connection: {:?}", err);
+            None
+        }
+    }
 }
-
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
@@ -39,7 +86,7 @@ fn greet(name: &str) -> String {
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![greet , read_modbus, write_modbus])
+        .invoke_handler(tauri::generate_handler![greet, handle_modbus])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
